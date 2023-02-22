@@ -8,26 +8,42 @@ import DateTimePicker from "react-datetime-picker";
 
 function App() {
   const [reminderMsg, setReminderMsg] = useState('');
-  const [reminderDate, setReminderDate] = useState(new Date());
+  const [remindAt, setremindAt] = useState();
+  const [reminderList, setReminderList] = useState([]);
+
+  useEffect(() => {
+    axios.get('http://localhost:9000/getallreminder')
+      .then(res => {
+        setReminderList(res.data)
+      })
+  },[])
+
   const addReminder = () => {
-    axios.post('http://localhost:3001/reminders', {
+    axios.post('http://localhost:9000/addreminder', {
       reminderMsg,
-      reminderDate
+      remindAt
+
     })
       .then(res => {
-        console.log(res.data)
+        setReminderList(res.data)
       })
+  }
+
+  const deleteReminder = (id) => {
+    axios.post("http://localhost:9000/deleteReminder", { id })
+    .then( res => setReminderList(res.data))
   }
   return (
     <div className="App">
+      {console.log(reminderList)}
       <div className="homepage">
 
         <div className="homepage-header">
           <h1>Remind Me</h1>
           <input type="text" placeholder='Reminder Notes here ...' value={reminderMsg} onChange={e => setReminderMsg(e.target.value)} />
           <DateTimePicker
-            value={reminderDate}
-            onChange={setReminderDate}
+            value={remindAt}
+            onChange={setremindAt}
             minDate={new Date()}
             minutePlaceholder="mm"
             hourPlaceholder="hh"
@@ -42,30 +58,20 @@ function App() {
         </div>
 
         <div className="homepage-body">
-          <div className="reminder-card">
-            <h2>Reminder Note</h2>
-            <h3>Remind me at :</h3>
-            <p>26/05/2021 @ 2AM</p>
-            <button className="delete"> Delete </button>
-          </div>
-          <div className="reminder-card">
-            <h2>Reminder Note</h2>
-            <h3>Remind me at :</h3>
-            <p>26/05/2021 @ 2AM</p>
-            <button className="delete"> Delete </button>
-          </div>
-          <div className="reminder-card">
-            <h2>Reminder Note</h2>
-            <h3>Remind me at :</h3>
-            <p>26/05/2021 @ 2AM</p>
-            <button className="delete"> Delete </button>
-          </div>
-          <div className="reminder-card">
-            <h2>Reminder Note</h2>
-            <h3>Remind me at :</h3>
-            <p>26/05/2021 @ 2AM</p>
-            <button className="delete"> Delete </button>
-          </div>
+          {
+            reminderList.map(reminder=>{
+              return(
+                <div className="reminder-card" key={reminder._id}>
+                  <h2>{reminder.reminderMsg}</h2>
+                  <h3>Remind me at : </h3>
+                  <p>{reminder.remindAt}</p>
+                  
+                  <button className="delete" onClick={() => deleteReminder(reminder._id)}> Delete </button>
+                </div>
+              )
+            })
+          }
+          
         </div>
       </div>
     </div>
